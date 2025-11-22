@@ -91,7 +91,7 @@
                 border-radius: 50%;
                 z-index: 9999;
                 pointer-events: none;
-                will-change: transform; /* Performance optimization */
+                will-change: transform;
             }
             .cursor-dot {
                 width: 8px;
@@ -104,7 +104,6 @@
                 height: var(--cursor-size);
                 border: 1px solid var(--accent-color);
                 opacity: 0.5;
-                /* No transition on transform, handled by JS loop for performance */
                 transition: width 0.2s, height 0.2s, background-color 0.2s, opacity 0.2s;
             }
             body.hovering .cursor-outline {
@@ -207,20 +206,6 @@
 
         .magnetic-area { display: inline-block; }
 
-        /* Preloader */
-        #preloader {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Newsreader', serif;
-            font-style: italic;
-            color: white;
-        }
-
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
@@ -320,19 +305,6 @@
         </defs>
     </svg>
 
-    <!-- Preloader -->
-    <div id="preloader">
-        <div class="text-center px-6">
-            <div class="text-3xl md:text-6xl mb-4 overflow-hidden">
-                <span class="inline-block transform translate-y-full" id="loader-text">SYSTEM_BOOT_SEQUENCE</span>
-            </div>
-            <div class="w-full max-w-xs md:w-48 h-[1px] bg-white/20 mx-auto overflow-hidden">
-                <div class="h-full bg-white w-full transform -translate-x-full" id="loader-bar"></div>
-            </div>
-            <div class="mt-2 font-mono text-xs text-gray-500" id="loader-percent">00%</div>
-        </div>
-    </div>
-
     <!-- Custom Cursor (Desktop) -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
@@ -422,7 +394,7 @@
             </header>
 
             <div class="space-y-4 animate-target opacity-0">
-                <!-- Project 1 -->
+                <!-- Project 1: Hotel Management -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Hotel Management System', '2024', 'Full Stack', 'A full-stack hotel management application featuring room booking, customer details management, and automated billing. Built REST APIs for CRUD operations and integrated MySQL for persistent data handling using Spring Boot, Spring MVC, and JPA.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -437,7 +409,7 @@
                     </div>
                 </div>
 
-                <!-- Project 2 -->
+                <!-- Project 2: Student Management -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Student Management System', '2023', 'Web System', 'A robust web-based system for managing student records, subject registration, timetables, and grievances. Developed using JSP, Servlets, and JDBC following MVC architecture for scalability.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -452,7 +424,7 @@
                     </div>
                 </div>
 
-                <!-- Project 3 -->
+                <!-- Project 3: Bank Management -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Bank Management System', '2023', 'Desktop App', 'A comprehensive desktop application to manage bank accounts, transactions, and customer data. Features include deposit, withdrawal, balance enquiry, and account creation. Built with Java Swing and AWT.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -687,9 +659,15 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
+        // Haptic Helper
+        const vibrate = (ms = 5) => {
+            if (navigator.vibrate) navigator.vibrate(ms);
+        };
+
         // Helper to play synthesized sounds
         const playSound = (type) => {
-            if (navigator.vibrate) navigator.vibrate(5);
+            // Haptic Feedback on interaction
+            vibrate(5);
 
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -766,36 +744,28 @@
 
         initAuth();
 
-        // --- Initialization ---
+        // --- Initialization (Replaced Boot Sequence) ---
         const init = () => {
             if(!window.anime) {
                 setTimeout(init, 100);
                 return;
             }
             
-            // Animate Intro
-            const tl = anime.timeline({ easing: 'easeOutExpo' });
-            tl.add({
-                targets: '#loader-text', translateY: ['100%', '0%'], duration: 1000, delay: 200
-            }).add({
-                targets: '#loader-bar', translateX: ['-100%', '0%'], duration: 1500, easing: 'easeInOutQuart'
-            }, '-=500').add({
-                targets: '#loader-percent', innerHTML: [0, 100], round: 1, easing: 'linear', duration: 1500
-            }, '-=1500').add({
-                targets: '#preloader', translateY: '-100%', duration: 800, easing: 'easeInOutExpo', delay: 200,
-                complete: () => {
-                    animateSection('work');
-                    document.addEventListener('click', () => {
-                        if (audioCtx.state === 'suspended') audioCtx.resume();
-                    }, { once: true });
-                }
-            });
+            // Immediate start
+            animateSection('work');
+            
+            // Init Audio context on first interaction
+            document.addEventListener('click', () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
         };
         init();
 
 
         // --- Feature 2: Background Orbs (Mobile Scroll Parallax) ---
         const orbs = document.querySelectorAll('.orb');
+        
+        // Desktop Mouse Follow
         document.addEventListener('mousemove', (e) => {
             const x = e.clientX;
             const y = e.clientY;
@@ -807,9 +777,11 @@
             });
         });
 
+        // Mobile Scroll Parallax
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
             orbs.forEach((orb, index) => {
+                // Alternate direction
                 const direction = index % 2 === 0 ? 1 : -1; 
                 const speed = parseFloat(orb.getAttribute('data-speed')) * 200;
                 orb.style.transform = `translateY(${scrollY * direction * speed}px)`;
