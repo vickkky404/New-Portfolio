@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vicky.dev</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Anime.js synchronously -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #ffffff;
+            --accent-color: #ffffff;
+            --cursor-size: 20px;
+            --orb-opacity: 0.4;
+            --nav-height: 80px;
+        }
+        
+        /* TERMINAL MODE THEME */
+        body.terminal-mode {
+            --bg-color: #051405;
+            --text-color: #00ff41;
+            --accent-color: #00ff41;
+            --orb-opacity: 0.15;
+        }
+        body.terminal-mode .noise-bg {
+            opacity: 0.1;
+            mix-blend-mode: overlay;
+        }
+        body.terminal-mode .orb {
+            background-color: #00ff41 !important;
+            filter: blur(100px);
+        }
+        body.terminal-mode img, 
+        body.terminal-mode .project-card::before,
+        body.terminal-mode .mobile-nav,
+        body.terminal-mode .tech-card {
+            background: #00ff41 !important;
+            color: #000 !important;
+        }
+        body.terminal-mode .mobile-nav-item.active {
+            color: #000;
+            font-weight: bold;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: none; /* Hide default cursor on desktop */
+            transition: background-color 0.5s ease, color 0.5s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .font-serif {
+            font-family: 'Newsreader', serif;
+        }
+        
+        /* Custom Cursor - Desktop Only */
+        @media (hover: hover) and (pointer: fine) {
+            .cursor-dot,
+            .cursor-outline {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translate(-50%, -50%);
+                border-radius: 50%;
+                z-index: 9999;
+                pointer-events: none;
+            }
+            .cursor-dot {
+                width: 8px;
+                height: 8px;
+                background-color: var(--accent-color);
+            }
+            .cursor-outline {
+                width: var(--cursor-size);
+                height: var(--cursor-size);
+                border: 1px solid var(--accent-color);
+                opacity: 0.5;
+                transition: width 0.2s, height 0.2s, background-color 0.2s;
+            }
+            body.hovering .cursor-outline {
+                width: 50px;
+                height: 50px;
+                background-color: var(--accent-color);
+                opacity: 0.1;
+                border-color: transparent;
+                backdrop-filter: blur(2px);
+            }
+        }
+        /* Disable custom cursor on mobile */
+        @media (hover: none) {
+            .cursor-dot, .cursor-outline { display: none; }
+            body { cursor: auto; }
+        }
+
+        /* Noise Background */
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10; 
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Background Orbs */
+        .orb-container {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: var(--orb-opacity);
+            mix-blend-mode: exclusion;
+            transition: transform 0.2s ease-out, background-color 0.5s ease, opacity 0.5s ease;
+        }
+
+        /* Utilities */
+        .section-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .section-content.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Project Card Hover Effect */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--accent-color);
+            transform-origin: bottom;
+            transform: scaleY(0);
+            transition: transform 0.5s ease-out;
+            z-index: 0;
+        }
+        @media (hover: hover) {
+            .project-card:hover::before {
+                transform: scaleY(1);
+            }
+        }
+        
+        /* LIQUID DISTORTION EFFECT */
+        .distort-target {
+            transition: filter 0.3s ease;
+        }
+        @media (hover: hover) {
+            .group:hover .distort-target {
+                filter: url(#liquid);
+            }
+        }
+
+        /* Tech Card Styles (Aesthetic) */
+        .tech-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+        .tech-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Magnetic Effect Helper */
+        .magnetic-area {
+            display: inline-block;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Newsreader', serif;
+            font-style: italic;
+            color: white;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Mobile Bottom Nav */
+        .mobile-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            height: 60px;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .mobile-nav-item {
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 60px;
+            height: 100%;
+            position: relative;
+        }
+        .mobile-nav-item svg {
+            margin-bottom: 4px;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .mobile-nav-item.active {
+            color: var(--accent-color);
+        }
+        .mobile-nav-item.active svg {
+            transform: translateY(-2px);
+        }
+        /* Active indicator dot */
+        .mobile-nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+        .mobile-nav-item.active::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+        }
+        
+        /* Terminal Text Color Overrides */
+        body.terminal-mode .text-gray-400, 
+        body.terminal-mode .text-gray-500, 
+        body.terminal-mode .text-gray-300 {
+            color: rgba(0, 255, 65, 0.7);
+        }
+        body.terminal-mode .border-white\/20,
+        body.terminal-mode .border-white\/10,
+        body.terminal-mode .border-white\/30 {
+            border-color: rgba(0, 255, 65, 0.3);
+        }
+        body.terminal-mode .bg-white {
+            background-color: #00ff41;
+            color: black;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-white selection:text-black">
+
+    <!-- SVG Filter Definition for Reality Distortion -->
+    <svg style="display: none;">
+        <defs>
+            <filter id="liquid">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" result="warp" />
+                <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="30" in="SourceGraphic" in2="warp" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="text-center px-6">
+            <div class="text-3xl md:text-6xl mb-4 overflow-hidden">
+                <span class="inline-block transform translate-y-full" id="loader-text">SYSTEM_BOOT_SEQUENCE</span>
+            </div>
+            <div class="w-full max-w-xs md:w-48 h-[1px] bg-white/20 mx-auto overflow-hidden">
+                <div class="h-full bg-white w-full transform -translate-x-full" id="loader-bar"></div>
+            </div>
+            <div class="mt-2 font-mono text-xs text-gray-500" id="loader-percent">00%</div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor Elements (Desktop Only via CSS) -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Noise Overlay -->
+    <div class="noise-bg"></div>
+
+    <!-- Background Orbs -->
+    <div class="orb-container">
+        <div class="orb w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-blue-900/30 top-[-10%] left-[-10%]" data-speed="0.02"></div>
+        <div class="orb w-[200px] h-[200px] md:w-[400px] md:h-[400px] bg-purple-900/30 bottom-[-10%] right-[-10%]" data-speed="0.03"></div>
+        <div class="orb w-[150px] h-[150px] md:w-[300px] md:h-[300px] bg-white/10 top-[40%] left-[40%]" data-speed="0.01"></div>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex fixed top-0 left-0 w-full z-50 px-6 py-6 justify-between items-center mix-blend-difference" style="color: var(--accent-color);">
+        <div class="magnetic-area">
+            <div class="text-2xl font-bold tracking-tighter font-serif italic cursor-pointer hover-trigger nav-logo" id="main-logo" onclick="window.location.reload()">
+                Vicky.dev
+            </div>
+        </div>
+        <div class="flex gap-6 text-sm font-medium tracking-widest uppercase items-center" id="nav-links">
+            <div class="magnetic-area">
+                <button data-tab="work" class="nav-btn hover-trigger relative group block p-2">
+                    work
+                    <span class="absolute bottom-0 left-2 right-2 h-[1px] bg-current transform transition-transform duration-300 scale-x-100"></span>
+                </button>
+            </div>
+            <div class="magnetic-area">
+                <button data-tab="blog" class="nav-btn hover-trigger relative group opacity-60 hover:opacity-100 transition-all block p-2">
+                    blog
+                    <span class="absolute bottom-0 left-2 right-2 h-[1px] bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                </button>
+            </div>
+            <div class="magnetic-area">
+                <button data-tab="about" class="nav-btn hover-trigger relative group opacity-60 hover:opacity-100 transition-all block p-2">
+                    about
+                    <span class="absolute bottom-0 left-2 right-2 h-[1px] bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                </button>
+            </div>
+            
+            <!-- Theme Toggle -->
+            <div class="magnetic-area ml-4 pl-4 border-l border-white/20">
+                <button class="theme-toggle-btn hover-trigger opacity-60 hover:opacity-100" title="Toggle Terminal Mode">
+                    <i data-lucide="terminal" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Top Bar -->
+    <div class="md:hidden fixed top-0 left-0 w-full z-50 px-6 py-6 flex justify-between items-center bg-gradient-to-b from-[#0a0a0a] to-transparent">
+        <div class="text-xl font-bold tracking-tighter font-serif italic text-white mix-blend-difference" onclick="window.location.reload()">
+            Vicky.dev
+        </div>
+        <button class="theme-toggle-btn text-white opacity-80 mix-blend-difference p-2 rounded-full border border-white/10 backdrop-blur-md">
+             <i data-lucide="terminal" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden mobile-nav">
+        <button class="mobile-nav-item active" data-tab="work">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+            <span>Work</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="blog">
+            <i data-lucide="pen-tool" class="w-5 h-5"></i>
+            <span>Blog</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="about">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span>About</span>
+        </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-container" class="relative z-20 pt-24 md:pt-32 px-6 md:px-12 max-w-7xl mx-auto pb-32 min-h-screen touch-pan-y">
+        
+        <!-- WORK SECTION -->
+        <section id="work" class="section-content active">
+            <header class="mb-12 md:mb-24 animate-target opacity-0">
+                <h1 class="text-5xl md:text-9xl font-serif italic mb-4 md:mb-8 leading-[0.9] distort-target">
+                    Digital <br/> Craftsman
+                </h1>
+                <p class="text-gray-400 max-w-xl text-base md:text-lg leading-relaxed">
+                    Backend Specialist & Full-Stack Developer. Building scalable architectures with Java, Spring Boot, and Angular.
+                </p>
+            </header>
+
+            <div class="space-y-4 animate-target opacity-0">
+                <!-- Project 1: Hotel Management -->
+                <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
+                     onclick="openProjectModal('Hotel Management System', '2024', 'Full Stack', 'A full-stack hotel management application featuring room booking, customer details management, and automated billing. Built REST APIs for CRUD operations and integrated MySQL for persistent data handling using Spring Boot, Spring MVC, and JPA.')">
+                    <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
+                        <div class="flex gap-4 md:gap-8 items-baseline">
+                            <span class="text-xs font-mono text-gray-500">01</span>
+                            <h3 class="text-3xl md:text-5xl font-bold group-hover:italic transition-all duration-500 distort-target" style="color: var(--accent-color)">Hotel Management</h3>
+                        </div>
+                        <div class="flex flex-row md:flex-col justify-between md:items-end text-right pl-8 md:pl-0">
+                            <span class="text-xs font-mono text-gray-500 mb-1">2024</span>
+                            <span class="text-sm text-gray-400 uppercase tracking-widest">Spring Boot / Angular</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2: Student Management -->
+                <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
+                     onclick="openProjectModal('Student Management System', '2023', 'Web System', 'A robust web-based system for managing student records, subject registration, timetables, and grievances. Developed using JSP, Servlets, and JDBC following MVC architecture for scalability.')">
+                    <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
+                        <div class="flex gap-4 md:gap-8 items-baseline">
+                            <span class="text-xs font-mono text-gray-500">02</span>
+                            <h3 class="text-3xl md:text-5xl font-bold group-hover:italic transition-all duration-500 distort-target" style="color: var(--accent-color)">Student Manager</h3>
+                        </div>
+                        <div class="flex flex-row md:flex-col justify-between md:items-end text-right pl-8 md:pl-0">
+                            <span class="text-xs font-mono text-gray-500 mb-1">2023</span>
+                            <span class="text-sm text-gray-400 uppercase tracking-widest">Java / JSP / MySQL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 3: Bank Management -->
+                <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
+                     onclick="openProjectModal('Bank Management System', '2023', 'Desktop App', 'A comprehensive desktop application to manage bank accounts, transactions, and customer data. Features include deposit, withdrawal, balance enquiry, and account creation. Built with Java Swing and AWT.')">
+                    <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
+                        <div class="flex gap-4 md:gap-8 items-baseline">
+                            <span class="text-xs font-mono text-gray-500">03</span>
+                            <h3 class="text-3xl md:text-5xl font-bold group-hover:italic transition-all duration-500 distort-target" style="color: var(--accent-color)">Bank System</h3>
+                        </div>
+                        <div class="flex flex-row md:flex-col justify-between md:items-end text-right pl-8 md:pl-0">
+                            <span class="text-xs font-mono text-gray-500 mb-1">2023</span>
+                            <span class="text-sm text-gray-400 uppercase tracking-widest">Java Swing / JDBC</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BLOG SECTION -->
+        <section id="blog" class="section-content">
+            <header class="mb-12 md:mb-24 flex flex-col md:flex-row justify-between md:items-end animate-target opacity-0 gap-6">
+                <div>
+                    <h1 class="text-5xl md:text-8xl font-serif italic mb-4 distort-target">Journal</h1>
+                    <p class="text-gray-400">Thoughts on code, design, and entropy.</p>
+                </div>
+                <button id="open-editor-btn" class="hover-trigger self-start md:self-auto flex items-center gap-2 border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-colors text-sm uppercase tracking-wider">
+                    <i data-lucide="edit-2" class="w-3 h-3"></i>
+                    Write Entry
+                </button>
+            </header>
+
+            <div id="blog-list" class="animate-target opacity-0">
+                <div class="text-center py-20 border-t border-white/10 text-gray-500 font-mono">
+                    Loading neural link...
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="section-content">
+            <div class="grid md:grid-cols-2 gap-12 md:gap-16 animate-target opacity-0">
+                <div>
+                    <h1 class="text-5xl md:text-7xl font-serif italic mb-8 md:mb-12 distort-target">
+                        About <br/> the Human
+                    </h1>
+                    <div class="space-y-6 md:space-y-8 text-base md:text-lg text-gray-300 font-light leading-relaxed">
+                        <p>
+                            I am Nalinikanta Bastia, a Software Developer skilled in Java, Spring Boot, MySQL, and Angular.
+                        </p>
+                        <p>
+                            Experienced in building REST APIs, microservices, and scalable full-stack applications. I have a strong background in backend engineering, problem-solving, and applying DSA to real-world problems.
+                        </p>
+
+                        <!-- Social Links -->
+                        <div class="flex flex-wrap gap-6 mt-6 mb-8">
+                            <a href="https://github.com/vickkky404" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors hover-trigger">
+                                <div class="p-2 rounded-full border border-white/10 group-hover:border-white/30 group-hover:bg-white/5 transition-all">
+                                    <i data-lucide="github" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                </div>
+                                <span class="text-xs uppercase tracking-widest">GitHub</span>
+                            </a>
+                            <a href="https://www.linkedin.com/in/nalinikant-bastia-0ba605252" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors hover-trigger">
+                                <div class="p-2 rounded-full border border-white/10 group-hover:border-blue-400/30 group-hover:bg-blue-400/10 transition-all">
+                                    <i data-lucide="linkedin" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                </div>
+                                <span class="text-xs uppercase tracking-widest">LinkedIn</span>
+                            </a>
+                            <a href="mailto:nalinikantbastia@gmail.com" class="group flex items-center gap-2 text-gray-400 hover:text-green-400 transition-colors hover-trigger">
+                                <div class="p-2 rounded-full border border-white/10 group-hover:border-green-400/30 group-hover:bg-green-400/10 transition-all">
+                                    <i data-lucide="mail" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                </div>
+                                <span class="text-xs uppercase tracking-widest">Email</span>
+                            </a>
+                        </div>
+
+                        <!-- Tech Stack Visualization -->
+                        <div class="mt-8">
+                            <h3 class="text-xs uppercase tracking-widest text-gray-500 mb-4">Neural Network / Tech Stack</h3>
+                            
+                            <!-- Aesthetic Floating Cards for Core Skills -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="tech-card p-4 flex flex-col items-center justify-center gap-2 hover-trigger group cursor-pointer">
+                                    <div class="p-3 rounded-full bg-green-500/10 text-green-400 group-hover:bg-green-500/20 transition-colors">
+                                        <i data-lucide="leaf" class="w-8 h-8"></i>
+                                    </div>
+                                    <span class="font-medium">Spring Boot</span>
+                                    <span class="text-xs text-gray-500">Backend Core</span>
+                                </div>
+                                <div class="tech-card p-4 flex flex-col items-center justify-center gap-2 hover-trigger group cursor-pointer">
+                                    <div class="p-3 rounded-full bg-red-500/10 text-red-400 group-hover:bg-red-500/20 transition-colors">
+                                        <i data-lucide="box" class="w-8 h-8"></i>
+                                    </div>
+                                    <span class="font-medium">Angular</span>
+                                    <span class="text-xs text-gray-500">Frontend</span>
+                                </div>
+                                <div class="tech-card p-4 flex flex-col items-center justify-center gap-2 hover-trigger group cursor-pointer">
+                                    <div class="p-3 rounded-full bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
+                                        <i data-lucide="coffee" class="w-8 h-8"></i>
+                                    </div>
+                                    <span class="font-medium">Adv. Java</span>
+                                    <span class="text-xs text-gray-500">Enterprise</span>
+                                </div>
+                                <div class="tech-card p-4 flex flex-col items-center justify-center gap-2 hover-trigger group cursor-pointer">
+                                    <div class="p-3 rounded-full bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                                        <i data-lucide="database" class="w-8 h-8"></i>
+                                    </div>
+                                    <span class="font-medium">MySQL</span>
+                                    <span class="text-xs text-gray-500">Persistence</span>
+                                </div>
+                            </div>
+
+                            <!-- Infinite Scroll Text for Languages -->
+                             <div class="overflow-hidden whitespace-nowrap border-t border-b border-white/10 py-3 relative">
+                                <div class="inline-block animate-[marquee_20s_linear_infinite] text-sm font-mono text-gray-400">
+                                    JAVA • C++ • PYTHON • TYPESCRIPT • JAVASCRIPT • POSTGRESQL • DOCKER • POSTMAN • GIT • OOP • DSA • MICROSERVICES • REST API • JAVA • C++ • PYTHON • TYPESCRIPT • JAVASCRIPT •
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Form -->
+                        <div class="mt-12 md:mt-16 pt-12 border-t border-white/10">
+                            <h3 class="text-2xl font-serif italic mb-6">Initiate Contact</h3>
+                            <form id="contact-form" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="group">
+                                        <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Identity</label>
+                                        <input type="text" id="contact-name" required class="w-full bg-transparent border-b border-white/20 py-2 focus:outline-none focus:border-white transition-colors hover-trigger" style="color: var(--text-color);">
+                                    </div>
+                                    <div class="group">
+                                        <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Frequency</label>
+                                        <input type="email" id="contact-email" required class="w-full bg-transparent border-b border-white/20 py-2 focus:outline-none focus:border-white transition-colors hover-trigger" style="color: var(--text-color);">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Transmission</label>
+                                    <textarea id="contact-msg" rows="3" required class="w-full bg-transparent border-b border-white/20 py-2 focus:outline-none focus:border-white transition-colors hover-trigger" style="color: var(--text-color);"></textarea>
+                                </div>
+                                <button type="submit" class="magnetic-area inline-block w-full md:w-auto">
+                                    <span class="hover-trigger border border-white px-8 py-3 text-sm uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-300 inline-block w-full md:w-auto text-center">
+                                        Send Signal
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative hidden md:block h-[600px] border border-white/10 p-4">
+                    <div class="w-full h-full bg-[#111] flex items-center justify-center overflow-hidden relative hover:filter hover:url(#liquid) transition-all">
+                        <!-- Abstract CSS Shape -->
+                        <div class="absolute w-32 h-32 border-2 border-white rounded-full mix-blend-difference" style="animation: spin 10s linear infinite;"></div>
+                        <div class="absolute w-48 h-48 border border-white/30 rounded-full mix-blend-difference" style="animation: spin 15s linear infinite reverse;"></div>
+                        <span class="font-mono text-xs text-gray-500 tracking-widest absolute bottom-4 right-4">EST. 2024</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="fixed bottom-24 md:bottom-0 left-0 w-full md:border-t border-white/10 bg-transparent md:bg-[#0a0a0a]/90 md:backdrop-blur-sm py-4 px-6 flex justify-center md:justify-between items-center text-xs font-mono text-gray-500 z-40 pointer-events-none">
+        <div class="flex items-center gap-2 pointer-events-auto bg-black/50 md:bg-transparent px-3 py-1 rounded-full md:px-0 md:py-0 backdrop-blur-sm md:backdrop-blur-none">
+           <div id="status-dot" class="w-2 h-2 rounded-full bg-yellow-500"></div>
+           <span id="status-text">CONNECTING...</span>
+        </div>
+        <div class="hidden md:block">
+          &copy; <span id="year"></span>
+        </div>
+    </footer>
+
+    <!-- Blog Editor Modal -->
+    <div id="blog-editor" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-[#111] border border-white/10 w-full max-w-2xl p-8 shadow-2xl relative transform scale-95 transition-transform duration-300" id="editor-panel">
+            <button id="close-editor" class="hover-trigger absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h2 class="text-2xl font-serif italic text-white mb-6">New Entry</h2>
+            <form id="blog-form" class="space-y-6">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Title</label>
+                    <input type="text" id="post-title" required
+                        class="w-full bg-transparent border-b border-white/20 text-white text-xl py-2 focus:outline-none focus:border-white transition-colors font-serif hover-trigger">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-gray-500 mb-2">Content</label>
+                    <textarea id="post-content" required
+                        class="w-full bg-transparent border border-white/10 p-4 text-gray-300 h-64 focus:outline-none focus:border-white/30 transition-colors resize-none leading-relaxed hover-trigger"></textarea>
+                </div>
+                <button type="submit" id="submit-btn"
+                    class="hover-trigger w-full bg-white text-black py-3 font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                    <span>Publish</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Details Modal -->
+    <div id="project-modal" class="fixed inset-0 z-[70] flex items-center justify-center modal-backdrop hidden opacity-0 transition-opacity duration-500 p-4">
+        <div class="bg-black w-full h-full md:h-auto md:max-w-4xl md:border md:border-white/20 p-6 md:p-12 relative overflow-y-auto transform translate-y-10 transition-transform duration-500" id="project-panel" style="background-color: var(--bg-color);">
+            <button onclick="closeProjectModal()" class="hover-trigger absolute top-4 right-4 md:top-6 md:right-6 text-white mix-blend-difference z-50">
+                 <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-8">
+                <div class="space-y-6">
+                    <span id="modal-year" class="font-mono text-gray-500 text-sm"></span>
+                    <h2 id="modal-title" class="text-4xl md:text-7xl font-serif italic leading-none" style="color: var(--accent-color);"></h2>
+                    <div id="modal-category" class="inline-block border border-white/30 px-3 py-1 text-xs uppercase tracking-widest rounded-full" style="color: var(--text-color); border-color: var(--accent-color);"></div>
+                    <p id="modal-desc" class="text-gray-300 text-base md:text-lg leading-relaxed font-light"></p>
+                </div>
+                <div class="bg-[#111] aspect-square flex items-center justify-center border border-white/10 order-first md:order-last">
+                    <div class="text-center">
+                        <div class="w-12 h-12 md:w-16 md:h-16 border-2 border-white rounded-full mx-auto mb-4 animate-spin"></div>
+                        <span class="font-mono text-xs text-gray-500">VISUAL ASSET LOADING</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // --- Init Lucide Icons ---
+        lucide.createIcons();
+
+        // --- Config ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let currentUser = null;
+
+        // --- Web Audio API Generator ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // Haptic Helper
+        const vibrate = (ms = 5) => {
+            if (navigator.vibrate) navigator.vibrate(ms);
+        };
+
+        // Helper to play synthesized sounds
+        const playSound = (type) => {
+            // Haptic Feedback on interaction
+            vibrate(5);
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'hover') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        };
+
+        // --- Theme Toggle Logic ---
+        const toggleTheme = () => {
+            document.body.classList.toggle('terminal-mode');
+            playSound('click');
+        };
+        document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', toggleTheme);
+        });
+
+        // --- UI State ---
+        document.getElementById('year').textContent = new Date().getFullYear();
+        
+        // --- Auth ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth failed:", err);
+                document.getElementById('status-text').textContent = 'OFFLINE MODE';
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            if (user) {
+                statusDot.classList.remove('bg-yellow-500');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = 'SYSTEM ONLINE';
+                initBlogListener();
+            } else {
+                statusDot.classList.remove('bg-green-500');
+                statusDot.classList.add('bg-yellow-500');
+                statusText.textContent = 'CONNECTING...';
+            }
+        });
+
+        initAuth();
+
+        // --- Feature 1: Boot Sequence ---
+        const runBootSequence = () => {
+            if(!window.anime) {
+                setTimeout(runBootSequence, 100);
+                return;
+            }
+
+            const tl = anime.timeline({
+                easing: 'easeOutExpo',
+            });
+
+            tl.add({
+                targets: '#loader-text',
+                translateY: ['100%', '0%'],
+                duration: 1000,
+                delay: 200
+            })
+            .add({
+                targets: '#loader-bar',
+                translateX: ['-100%', '0%'],
+                duration: 1500,
+                easing: 'easeInOutQuart'
+            }, '-=500')
+            .add({
+                targets: '#loader-percent',
+                innerHTML: [0, 100],
+                round: 1,
+                easing: 'linear',
+                duration: 1500
+            }, '-=1500')
+            .add({
+                targets: '#preloader',
+                translateY: '-100%',
+                duration: 800,
+                easing: 'easeInOutExpo',
+                delay: 200,
+                complete: () => {
+                    animateSection('work');
+                    document.addEventListener('click', () => {
+                        if (audioCtx.state === 'suspended') audioCtx.resume();
+                    }, { once: true });
+                }
+            });
+        };
+        runBootSequence();
+
+
+        // --- Feature 2: Background Orbs (Mobile Scroll Parallax) ---
+        const orbs = document.querySelectorAll('.orb');
+        
+        // Desktop Mouse Follow
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            orbs.forEach(orb => {
+                const speed = parseFloat(orb.getAttribute('data-speed'));
+                const offsetX = (window.innerWidth - x * speed) / 50;
+                const offsetY = (window.innerHeight - y * speed) / 50;
+                orb.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        });
+
+        // Mobile Scroll Parallax
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            orbs.forEach((orb, index) => {
+                // Alternate direction
+                const direction = index % 2 === 0 ? 1 : -1; 
+                const speed = parseFloat(orb.getAttribute('data-speed')) * 200;
+                orb.style.transform = `translateY(${scrollY * direction * speed}px)`;
+            });
+        });
+
+
+        // --- Magnetic Buttons & Audio Triggers ---
+        const magneticElements = document.querySelectorAll('.magnetic-area');
+        magneticElements.forEach(area => {
+            const target = area.querySelector('button, .nav-logo, span');
+            
+            // Only enable magnetic effect on devices that have hover capability
+            if (window.matchMedia('(hover: hover)').matches) {
+                area.addEventListener('mousemove', (e) => {
+                    const rect = area.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    target.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+
+                area.addEventListener('mouseleave', () => {
+                    target.style.transform = `translate(0px, 0px)`;
+                    target.style.transition = 'transform 0.3s ease-out';
+                    setTimeout(() => { target.style.transition = ''; }, 300);
+                });
+            }
+        });
+
+
+        // --- Feature 4: Cipher Text Effect ---
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const mainLogo = document.getElementById('main-logo');
+        
+        mainLogo.onmouseover = event => {
+            playSound('hover');
+            let iterations = 0;
+            const interval = setInterval(() => {
+                event.target.innerText = event.target.innerText.split("")
+                    .map((letter, index) => {
+                        if(index < iterations) return event.target.dataset.value[index];
+                        return letters[Math.floor(Math.random() * 26)];
+                    })
+                    .join("");
+                if(iterations >= event.target.dataset.value.length) clearInterval(interval);
+                iterations += 1 / 3;
+            }, 30);
+        };
+        mainLogo.dataset.value = mainLogo.innerText;
+
+
+        // --- Custom Cursor Logic ---
+        if (window.matchMedia('(hover: hover)').matches) {
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+
+            window.addEventListener('mousemove', (e) => {
+                const posX = e.clientX;
+                const posY = e.clientY;
+                cursorDot.style.left = `${posX}px`;
+                cursorDot.style.top = `${posY}px`;
+                cursorOutline.animate({
+                    left: `${posX}px`,
+                    top: `${posY}px`
+                }, { duration: 500, fill: "forwards" });
+            });
+        }
+
+        const addHoverListeners = () => {
+            const triggers = document.querySelectorAll('.hover-trigger');
+            triggers.forEach(trigger => {
+                trigger.addEventListener('mouseenter', () => {
+                    document.body.classList.add('hovering');
+                    playSound('hover');
+                });
+                trigger.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('hovering');
+                });
+                trigger.addEventListener('click', () => {
+                    playSound('click');
+                });
+            });
+        };
+        addHoverListeners();
+
+
+        // --- Navigation Logic ---
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        const sections = document.querySelectorAll('.section-content');
+        let isAnimating = false;
+
+        function switchTab(tabName) {
+            if (isAnimating) return;
+            const currentSection = document.querySelector('.section-content.active');
+            if (currentSection && currentSection.id === tabName) return;
+
+            playSound('click');
+            isAnimating = true;
+            
+            // Update Desktop Nav Styles
+            navBtns.forEach(btn => {
+                const span = btn.querySelector('span');
+                const btnTab = btn.getAttribute('data-tab');
+                
+                if (btnTab === tabName) {
+                    btn.classList.remove('opacity-60');
+                    span.classList.remove('scale-x-0', 'group-hover:scale-x-100');
+                    span.classList.add('scale-x-100');
+                } else {
+                    btn.classList.add('opacity-60');
+                    span.classList.add('scale-x-0', 'group-hover:scale-x-100');
+                    span.classList.remove('scale-x-100');
+                }
+            });
+
+            // Update Mobile Nav Styles
+            mobileNavItems.forEach(item => {
+                if (item.getAttribute('data-tab') === tabName) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Animate Out
+            window.anime({
+                targets: '#main-container',
+                opacity: [1, 0],
+                translateY: [0, 20],
+                easing: 'easeInOutQuad',
+                duration: 300,
+                complete: () => {
+                    sections.forEach(sec => sec.classList.remove('active'));
+                    document.getElementById(tabName).classList.add('active');
+                    window.scrollTo(0,0);
+                    animateSection(tabName);
+                }
+            });
+        }
+
+        function animateSection(tabName) {
+            const container = document.getElementById('main-container');
+            container.style.opacity = '1';
+            container.style.transform = 'none';
+
+            const targets = document.querySelectorAll(`#${tabName} .animate-target`);
+            window.anime({
+                targets: targets,
+                opacity: [0, 1],
+                translateY: [50, 0],
+                duration: 800,
+                delay: window.anime.stagger(100),
+                easing: 'easeOutExpo',
+                complete: () => {
+                    isAnimating = false;
+                    addHoverListeners();
+                }
+            });
+        }
+        
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+        
+        // Mobile Nav Listeners
+        mobileNavItems.forEach(item => {
+            item.addEventListener('click', () => switchTab(item.getAttribute('data-tab')));
+        });
+
+        // --- Swipe Detection for Mobile ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        const mainContainer = document.getElementById('main-container');
+        
+        mainContainer.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        mainContainer.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const tabs = ['work', 'blog', 'about'];
+            const currentTab = document.querySelector('.section-content.active').id;
+            const currentIndex = tabs.indexOf(currentTab);
+            
+            // Swipe Left (Next)
+            if (touchStartX - touchEndX > 75) {
+                if (currentIndex < tabs.length - 1) {
+                    switchTab(tabs[currentIndex + 1]);
+                }
+            }
+            
+            // Swipe Right (Prev)
+            if (touchEndX - touchStartX > 75) {
+                if (currentIndex > 0) {
+                    switchTab(tabs[currentIndex - 1]);
+                }
+            }
+        }
+
+
+        // --- Project Modal Logic ---
+        window.openProjectModal = (title, year, category, desc) => {
+            playSound('click');
+            const modal = document.getElementById('project-modal');
+            const panel = document.getElementById('project-panel');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-year').textContent = year;
+            document.getElementById('modal-category').textContent = category;
+            document.getElementById('modal-desc').textContent = desc;
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('translate-y-10');
+            });
+        };
+        window.closeProjectModal = () => {
+            playSound('click');
+            const modal = document.getElementById('project-modal');
+            const panel = document.getElementById('project-panel');
+            modal.classList.add('opacity-0');
+            panel.classList.add('translate-y-10');
+            setTimeout(() => { modal.classList.add('hidden'); }, 500);
+        };
+
+
+        // --- Contact Form & Blog Logic ---
+        const contactForm = document.getElementById('contact-form');
+        if(contactForm) {
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if(!currentUser) return;
+                
+                const btn = contactForm.querySelector('button span');
+                const originalText = btn.textContent;
+                btn.textContent = "Transmitting...";
+                const submitBtn = contactForm.querySelector('button');
+                submitBtn.disabled = true;
+                playSound('click');
+
+                const name = document.getElementById('contact-name').value;
+                const email = document.getElementById('contact-email').value;
+                const msg = document.getElementById('contact-msg').value;
+
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                        to: 'Alex', from: name, email: email, message: msg, timestamp: serverTimestamp()
+                    });
+                    alert("Signal received.");
+                    contactForm.reset();
+                } catch(err) {
+                    alert("Transmission failed.");
+                } finally {
+                    btn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Blog
+        const blogListEl = document.getElementById('blog-list');
+        function initBlogListener() {
+            if (!currentUser) return;
+            const q = collection(db, 'artifacts', appId, 'public', 'data', 'blog-posts');
+            onSnapshot(q, (snapshot) => {
+                const posts = [];
+                snapshot.forEach((doc) => { posts.push({ id: doc.id, ...doc.data() }); });
+                posts.sort((a, b) => {
+                    const dateA = a.createdAt ? a.createdAt.seconds : new Date(a.date).getTime() / 1000;
+                    const dateB = b.createdAt ? b.createdAt.seconds : new Date(b.date).getTime() / 1000;
+                    return dateB - dateA;
+                });
+                renderPosts(posts);
+            }, (error) => { console.error("Data error:", error); });
+        }
+
+        function renderPosts(posts) {
+            if (posts.length === 0) {
+                blogListEl.innerHTML = `<div class="text-center py-20 border-t border-white/10 text-gray-500 font-mono">No entries yet. Start writing.</div>`;
+                return;
+            }
+            blogListEl.innerHTML = posts.map(post => {
+                const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
+                const safeTitle = post.title.replace(/</g, "&lt;");
+                const safeContent = post.content.replace(/</g, "&lt;");
+
+                return `
+                <article class="blog-post mb-16 group animate-target" id="post-${post.id}">
+                    <div class="flex flex-col md:flex-row gap-6 md:gap-12 items-baseline">
+                        <div class="w-32 flex-shrink-0">
+                            <span class="text-xs font-mono text-gray-500">${date}</span>
+                        </div>
+                        <div class="flex-1 border-l border-white/10 pl-6 md:pl-12 pb-12 relative">
+                            <div class="absolute -left-[3px] top-0 w-[5px] h-[5px] bg-white rounded-full group-hover:bg-blue-400 transition-colors"></div>
+                            <h3 class="text-2xl font-serif text-white mb-4 group-hover:text-blue-300 transition-colors text-lg">${safeTitle}</h3>
+                            <div class="text-gray-400 leading-relaxed whitespace-pre-wrap font-light">${safeContent}</div>
+                            ${currentUser && currentUser.uid === post.authorId ? `
+                                <button onclick="window.deletePost('${post.id}')" class="hover-trigger mt-6 text-xs text-red-500 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    Delete Entry
+                                </button>` : ''}
+                        </div>
+                    </div>
+                </article>`;
+            }).join('');
+            addHoverListeners();
+        }
+
+        window.deletePost = async (id) => {
+            if(confirm("Permanently delete this entry?")) {
+                playSound('click');
+                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog-posts', id)); } 
+                catch(e) { alert("Failed to delete."); }
+            }
+        };
+
+        // Editor
+        const editorModal = document.getElementById('blog-editor');
+        const editorPanel = document.getElementById('editor-panel');
+        const openBtn = document.getElementById('open-editor-btn');
+        const closeBtn = document.getElementById('close-editor');
+        const form = document.getElementById('blog-form');
+        const submitBtn = document.getElementById('submit-btn');
+
+        openBtn.addEventListener('click', () => {
+            editorModal.classList.remove('hidden');
+            playSound('click');
+            requestAnimationFrame(() => {
+                editorModal.classList.remove('opacity-0');
+                editorPanel.classList.remove('scale-95');
+                editorPanel.classList.add('scale-100');
+            });
+        });
+        const closeEditor = () => {
+            editorModal.classList.add('opacity-0');
+            editorPanel.classList.remove('scale-100');
+            editorPanel.classList.add('scale-95');
+            setTimeout(() => { editorModal.classList.add('hidden'); }, 300);
+        };
+        closeBtn.addEventListener('click', () => { closeEditor(); playSound('click'); });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const btnText = submitBtn.querySelector('span');
+            const originalText = btnText.textContent;
+            btnText.textContent = "Publishing...";
+            submitBtn.disabled = true;
+            playSound('click');
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'blog-posts'), {
+                    title, content, authorId: currentUser.uid, createdAt: serverTimestamp(), date: new Date().toISOString()
+                });
+                form.reset();
+                closeEditor();
+            } catch (error) { alert("Failed to publish."); } 
+            finally { btnText.textContent = originalText; submitBtn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
