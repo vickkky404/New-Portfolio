@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vicky.dev</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        marquee: 'marquee 25s linear infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Load Anime.js synchronously -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <!-- Lucide Icons -->
@@ -20,9 +37,8 @@
             --bg-color: #0a0a0a;
             --text-color: #ffffff;
             --accent-color: #ffffff;
-            --cursor-size: 20px;
+            --cursor-size: 30px;
             --orb-opacity: 0.4;
-            --nav-height: 80px;
         }
         
         /* TERMINAL MODE THEME */
@@ -65,35 +81,37 @@
             font-family: 'Newsreader', serif;
         }
         
-        /* Custom Cursor - Desktop Only */
+        /* Optimized Custom Cursor */
         @media (hover: hover) and (pointer: fine) {
             .cursor-dot,
             .cursor-outline {
                 position: fixed;
                 top: 0;
                 left: 0;
-                transform: translate(-50%, -50%);
                 border-radius: 50%;
                 z-index: 9999;
                 pointer-events: none;
+                will-change: transform; /* Performance optimization */
             }
             .cursor-dot {
                 width: 8px;
                 height: 8px;
                 background-color: var(--accent-color);
+                transform: translate(-50%, -50%);
             }
             .cursor-outline {
                 width: var(--cursor-size);
                 height: var(--cursor-size);
                 border: 1px solid var(--accent-color);
                 opacity: 0.5;
-                transition: width 0.2s, height 0.2s, background-color 0.2s;
+                /* No transition on transform, handled by JS loop for performance */
+                transition: width 0.2s, height 0.2s, background-color 0.2s, opacity 0.2s;
             }
             body.hovering .cursor-outline {
-                width: 50px;
-                height: 50px;
+                width: 60px;
+                height: 60px;
                 background-color: var(--accent-color);
-                opacity: 0.1;
+                opacity: 0.15;
                 border-color: transparent;
                 backdrop-filter: blur(2px);
             }
@@ -131,6 +149,7 @@
             filter: blur(80px);
             opacity: var(--orb-opacity);
             mix-blend-mode: exclusion;
+            will-change: transform;
             transition: transform 0.2s ease-out, background-color 0.5s ease, opacity 0.5s ease;
         }
 
@@ -172,7 +191,7 @@
             }
         }
 
-        /* Tech Card Styles (Aesthetic) */
+        /* Tech Card Styles */
         .tech-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -186,9 +205,20 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Magnetic Effect Helper */
-        .magnetic-area {
-            display: inline-block;
+        .magnetic-area { display: inline-block; }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Newsreader', serif;
+            font-style: italic;
+            color: white;
         }
 
         /* Scrollbar */
@@ -242,7 +272,6 @@
         .mobile-nav-item.active svg {
             transform: translateY(-2px);
         }
-        /* Active indicator dot */
         .mobile-nav-item::after {
             content: '';
             position: absolute;
@@ -260,10 +289,7 @@
             transform: scale(1);
         }
 
-        /* Modal Backdrop */
-        .modal-backdrop {
-            backdrop-filter: blur(8px);
-        }
+        .modal-backdrop { backdrop-filter: blur(8px); }
         
         /* Terminal Text Color Overrides */
         body.terminal-mode .text-gray-400, 
@@ -284,7 +310,7 @@
 </head>
 <body class="antialiased selection:bg-white selection:text-black">
 
-    <!-- SVG Filter Definition for Reality Distortion -->
+    <!-- SVG Filter Definition -->
     <svg style="display: none;">
         <defs>
             <filter id="liquid">
@@ -294,7 +320,20 @@
         </defs>
     </svg>
 
-    <!-- Custom Cursor Elements (Desktop Only via CSS) -->
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="text-center px-6">
+            <div class="text-3xl md:text-6xl mb-4 overflow-hidden">
+                <span class="inline-block transform translate-y-full" id="loader-text">SYSTEM_BOOT_SEQUENCE</span>
+            </div>
+            <div class="w-full max-w-xs md:w-48 h-[1px] bg-white/20 mx-auto overflow-hidden">
+                <div class="h-full bg-white w-full transform -translate-x-full" id="loader-bar"></div>
+            </div>
+            <div class="mt-2 font-mono text-xs text-gray-500" id="loader-percent">00%</div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor (Desktop) -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
 
@@ -334,8 +373,6 @@
                     <span class="absolute bottom-0 left-2 right-2 h-[1px] bg-current transform transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
                 </button>
             </div>
-            
-            <!-- Theme Toggle -->
             <div class="magnetic-area ml-4 pl-4 border-l border-white/20">
                 <button class="theme-toggle-btn hover-trigger opacity-60 hover:opacity-100" title="Toggle Terminal Mode">
                     <i data-lucide="terminal" class="w-5 h-5"></i>
@@ -385,7 +422,7 @@
             </header>
 
             <div class="space-y-4 animate-target opacity-0">
-                <!-- Project 1: Hotel Management -->
+                <!-- Project 1 -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Hotel Management System', '2024', 'Full Stack', 'A full-stack hotel management application featuring room booking, customer details management, and automated billing. Built REST APIs for CRUD operations and integrated MySQL for persistent data handling using Spring Boot, Spring MVC, and JPA.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -400,7 +437,7 @@
                     </div>
                 </div>
 
-                <!-- Project 2: Student Management -->
+                <!-- Project 2 -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Student Management System', '2023', 'Web System', 'A robust web-based system for managing student records, subject registration, timetables, and grievances. Developed using JSP, Servlets, and JDBC following MVC architecture for scalability.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -415,7 +452,7 @@
                     </div>
                 </div>
 
-                <!-- Project 3: Bank Management -->
+                <!-- Project 3 -->
                 <div class="project-card hover-trigger group relative border-t border-white/20 py-8 md:py-12 cursor-pointer overflow-hidden"
                      onclick="openProjectModal('Bank Management System', '2023', 'Desktop App', 'A comprehensive desktop application to manage bank accounts, transactions, and customer data. Features include deposit, withdrawal, balance enquiry, and account creation. Built with Java Swing and AWT.')">
                     <div class="flex flex-col md:flex-row justify-between md:items-baseline relative z-10 mix-blend-difference px-2 gap-2 md:gap-0">
@@ -489,11 +526,9 @@
                             </a>
                         </div>
 
-                        <!-- Tech Stack Visualization -->
+                        <!-- Tech Stack -->
                         <div class="mt-8">
                             <h3 class="text-xs uppercase tracking-widest text-gray-500 mb-4">Neural Network / Tech Stack</h3>
-                            
-                            <!-- Aesthetic Floating Cards for Core Skills -->
                             <div class="grid grid-cols-2 gap-4 mb-6">
                                 <div class="tech-card p-4 flex flex-col items-center justify-center gap-2 hover-trigger group cursor-pointer">
                                     <div class="p-3 rounded-full bg-green-500/10 text-green-400 group-hover:bg-green-500/20 transition-colors">
@@ -524,10 +559,8 @@
                                     <span class="text-xs text-gray-500">Persistence</span>
                                 </div>
                             </div>
-
-                            <!-- Infinite Scroll Text for Languages -->
                              <div class="overflow-hidden whitespace-nowrap border-t border-b border-white/10 py-3 relative">
-                                <div class="inline-block animate-[marquee_20s_linear_infinite] text-sm font-mono text-gray-400">
+                                <div class="inline-block animate-marquee text-sm font-mono text-gray-400">
                                     JAVA • C++ • PYTHON • TYPESCRIPT • JAVASCRIPT • POSTGRESQL • DOCKER • POSTMAN • GIT • OOP • DSA • MICROSERVICES • REST API • JAVA • C++ • PYTHON • TYPESCRIPT • JAVASCRIPT •
                                 </div>
                             </div>
@@ -562,9 +595,8 @@
                 </div>
                 <div class="relative hidden md:block h-[600px] border border-white/10 p-4">
                     <div class="w-full h-full bg-[#111] flex items-center justify-center overflow-hidden relative hover:filter hover:url(#liquid) transition-all">
-                        <!-- Abstract CSS Shape -->
-                        <div class="absolute w-32 h-32 border-2 border-white rounded-full mix-blend-difference" style="animation: spin 10s linear infinite;"></div>
-                        <div class="absolute w-48 h-48 border border-white/30 rounded-full mix-blend-difference" style="animation: spin 15s linear infinite reverse;"></div>
+                        <div class="absolute w-32 h-32 border-2 border-white rounded-full mix-blend-difference animate-[spin_10s_linear_infinite]"></div>
+                        <div class="absolute w-48 h-48 border border-white/30 rounded-full mix-blend-difference animate-[spin_15s_linear_infinite_reverse]"></div>
                         <span class="font-mono text-xs text-gray-500 tracking-widest absolute bottom-4 right-4">EST. 2024</span>
                     </div>
                 </div>
@@ -655,15 +687,9 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        // Haptic Helper
-        const vibrate = (ms = 5) => {
-            if (navigator.vibrate) navigator.vibrate(ms);
-        };
-
         // Helper to play synthesized sounds
         const playSound = (type) => {
-            // Haptic Feedback on interaction
-            vibrate(5);
+            if (navigator.vibrate) navigator.vibrate(5);
 
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -740,28 +766,36 @@
 
         initAuth();
 
-        // --- Initialization (Replaced Boot Sequence) ---
+        // --- Initialization ---
         const init = () => {
             if(!window.anime) {
                 setTimeout(init, 100);
                 return;
             }
             
-            // Immediate start
-            animateSection('work');
-            
-            // Init Audio context on first interaction
-            document.addEventListener('click', () => {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-            }, { once: true });
+            // Animate Intro
+            const tl = anime.timeline({ easing: 'easeOutExpo' });
+            tl.add({
+                targets: '#loader-text', translateY: ['100%', '0%'], duration: 1000, delay: 200
+            }).add({
+                targets: '#loader-bar', translateX: ['-100%', '0%'], duration: 1500, easing: 'easeInOutQuart'
+            }, '-=500').add({
+                targets: '#loader-percent', innerHTML: [0, 100], round: 1, easing: 'linear', duration: 1500
+            }, '-=1500').add({
+                targets: '#preloader', translateY: '-100%', duration: 800, easing: 'easeInOutExpo', delay: 200,
+                complete: () => {
+                    animateSection('work');
+                    document.addEventListener('click', () => {
+                        if (audioCtx.state === 'suspended') audioCtx.resume();
+                    }, { once: true });
+                }
+            });
         };
         init();
 
 
         // --- Feature 2: Background Orbs (Mobile Scroll Parallax) ---
         const orbs = document.querySelectorAll('.orb');
-        
-        // Desktop Mouse Follow
         document.addEventListener('mousemove', (e) => {
             const x = e.clientX;
             const y = e.clientY;
@@ -773,11 +807,9 @@
             });
         });
 
-        // Mobile Scroll Parallax
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
             orbs.forEach((orb, index) => {
-                // Alternate direction
                 const direction = index % 2 === 0 ? 1 : -1; 
                 const speed = parseFloat(orb.getAttribute('data-speed')) * 200;
                 orb.style.transform = `translateY(${scrollY * direction * speed}px)`;
@@ -785,25 +817,22 @@
         });
 
 
-        // --- Magnetic Buttons & Audio Triggers ---
-        const magneticElements = document.querySelectorAll('.magnetic-area');
-        magneticElements.forEach(area => {
-            const target = area.querySelector('button, .nav-logo, span');
-            
-            // Only enable magnetic effect on devices that have hover capability
-            if (window.matchMedia('(hover: hover)').matches) {
-                area.addEventListener('mousemove', (e) => {
-                    const rect = area.getBoundingClientRect();
-                    const x = e.clientX - rect.left - rect.width / 2;
-                    const y = e.clientY - rect.top - rect.height / 2;
-                    target.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
-                });
-
-                area.addEventListener('mouseleave', () => {
-                    target.style.transform = `translate(0px, 0px)`;
-                    target.style.transition = 'transform 0.3s ease-out';
-                    setTimeout(() => { target.style.transition = ''; }, 300);
-                });
+        // --- Optimized Event Delegation ---
+        // Replaces memory-leaking addHoverListeners logic
+        document.body.addEventListener('mouseover', (e) => {
+            if(e.target.closest('.hover-trigger')) {
+                document.body.classList.add('hovering');
+                playSound('hover');
+            }
+        });
+        document.body.addEventListener('mouseout', (e) => {
+            if(e.target.closest('.hover-trigger')) {
+                document.body.classList.remove('hovering');
+            }
+        });
+        document.body.addEventListener('click', (e) => {
+            if(e.target.closest('.hover-trigger')) {
+                playSound('click');
             }
         });
 
@@ -811,17 +840,13 @@
         // --- Feature 4: Cipher Text Effect ---
         const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const mainLogo = document.getElementById('main-logo');
-        
         mainLogo.onmouseover = event => {
-            playSound('hover');
             let iterations = 0;
             const interval = setInterval(() => {
-                event.target.innerText = event.target.innerText.split("")
-                    .map((letter, index) => {
-                        if(index < iterations) return event.target.dataset.value[index];
-                        return letters[Math.floor(Math.random() * 26)];
-                    })
-                    .join("");
+                event.target.innerText = event.target.innerText.split("").map((letter, index) => {
+                    if(index < iterations) return event.target.dataset.value[index];
+                    return letters[Math.floor(Math.random() * 26)];
+                }).join("");
                 if(iterations >= event.target.dataset.value.length) clearInterval(interval);
                 iterations += 1 / 3;
             }, 30);
@@ -829,39 +854,32 @@
         mainLogo.dataset.value = mainLogo.innerText;
 
 
-        // --- Custom Cursor Logic ---
+        // --- PERFORMANCE FIXED CURSOR LOGIC ---
+        // Uses Physics Loop instead of creating animations on every mousemove
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        
         if (window.matchMedia('(hover: hover)').matches) {
-            const cursorDot = document.querySelector('.cursor-dot');
-            const cursorOutline = document.querySelector('.cursor-outline');
+            let mouseX = -100, mouseY = -100; // Hide initially
+            let outlineX = -100, outlineY = -100;
 
             window.addEventListener('mousemove', (e) => {
-                const posX = e.clientX;
-                const posY = e.clientY;
-                cursorDot.style.left = `${posX}px`;
-                cursorDot.style.top = `${posY}px`;
-                cursorOutline.animate({
-                    left: `${posX}px`,
-                    top: `${posY}px`
-                }, { duration: 500, fill: "forwards" });
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                // Dot follows instantly
+                cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
             });
-        }
 
-        const addHoverListeners = () => {
-            const triggers = document.querySelectorAll('.hover-trigger');
-            triggers.forEach(trigger => {
-                trigger.addEventListener('mouseenter', () => {
-                    document.body.classList.add('hovering');
-                    playSound('hover');
-                });
-                trigger.addEventListener('mouseleave', () => {
-                    document.body.classList.remove('hovering');
-                });
-                trigger.addEventListener('click', () => {
-                    playSound('click');
-                });
-            });
-        };
-        addHoverListeners();
+            const animateCursor = () => {
+                // Linear Interpolation (Lerp) for smooth lag without heavy animation calls
+                outlineX += (mouseX - outlineX) * 0.15; 
+                outlineY += (mouseY - outlineY) * 0.15;
+
+                cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px) translate(-50%, -50%)`;
+                requestAnimationFrame(animateCursor);
+            };
+            animateCursor();
+        }
 
 
         // --- Navigation Logic ---
@@ -875,14 +893,12 @@
             const currentSection = document.querySelector('.section-content.active');
             if (currentSection && currentSection.id === tabName) return;
 
-            playSound('click');
             isAnimating = true;
             
-            // Update Desktop Nav Styles
+            // Update Desktop Nav
             navBtns.forEach(btn => {
                 const span = btn.querySelector('span');
                 const btnTab = btn.getAttribute('data-tab');
-                
                 if (btnTab === tabName) {
                     btn.classList.remove('opacity-60');
                     span.classList.remove('scale-x-0', 'group-hover:scale-x-100');
@@ -894,22 +910,15 @@
                 }
             });
 
-            // Update Mobile Nav Styles
+            // Update Mobile Nav
             mobileNavItems.forEach(item => {
-                if (item.getAttribute('data-tab') === tabName) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
+                if (item.getAttribute('data-tab') === tabName) item.classList.add('active');
+                else item.classList.remove('active');
             });
 
             // Animate Out
             window.anime({
-                targets: '#main-container',
-                opacity: [1, 0],
-                translateY: [0, 20],
-                easing: 'easeInOutQuad',
-                duration: 300,
+                targets: '#main-container', opacity: [1, 0], translateY: [0, 20], easing: 'easeInOutQuad', duration: 300,
                 complete: () => {
                     sections.forEach(sec => sec.classList.remove('active'));
                     document.getElementById(tabName).classList.add('active');
@@ -926,67 +935,33 @@
 
             const targets = document.querySelectorAll(`#${tabName} .animate-target`);
             window.anime({
-                targets: targets,
-                opacity: [0, 1],
-                translateY: [50, 0],
-                duration: 800,
-                delay: window.anime.stagger(100),
-                easing: 'easeOutExpo',
-                complete: () => {
-                    isAnimating = false;
-                    addHoverListeners();
-                }
+                targets: targets, opacity: [0, 1], translateY: [50, 0], duration: 800, delay: window.anime.stagger(100), easing: 'easeOutExpo',
+                complete: () => { isAnimating = false; }
             });
         }
         
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
-        });
-        
-        // Mobile Nav Listeners
-        mobileNavItems.forEach(item => {
-            item.addEventListener('click', () => switchTab(item.getAttribute('data-tab')));
-        });
+        navBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab'))));
+        mobileNavItems.forEach(item => item.addEventListener('click', () => switchTab(item.getAttribute('data-tab'))));
 
-        // --- Swipe Detection for Mobile ---
+        // --- Swipe Detection ---
         let touchStartX = 0;
         let touchEndX = 0;
-        
         const mainContainer = document.getElementById('main-container');
         
-        mainContainer.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
+        mainContainer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
         mainContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, {passive: true});
-
-        function handleSwipe() {
             const tabs = ['work', 'blog', 'about'];
             const currentTab = document.querySelector('.section-content.active').id;
             const currentIndex = tabs.indexOf(currentTab);
             
-            // Swipe Left (Next)
-            if (touchStartX - touchEndX > 75) {
-                if (currentIndex < tabs.length - 1) {
-                    switchTab(tabs[currentIndex + 1]);
-                }
-            }
-            
-            // Swipe Right (Prev)
-            if (touchEndX - touchStartX > 75) {
-                if (currentIndex > 0) {
-                    switchTab(tabs[currentIndex - 1]);
-                }
-            }
-        }
+            if (touchStartX - touchEndX > 75 && currentIndex < tabs.length - 1) switchTab(tabs[currentIndex + 1]);
+            if (touchEndX - touchStartX > 75 && currentIndex > 0) switchTab(tabs[currentIndex - 1]);
+        }, {passive: true});
 
 
         // --- Project Modal Logic ---
         window.openProjectModal = (title, year, category, desc) => {
-            playSound('click');
             const modal = document.getElementById('project-modal');
             const panel = document.getElementById('project-panel');
             document.getElementById('modal-title').textContent = title;
@@ -1000,7 +975,6 @@
             });
         };
         window.closeProjectModal = () => {
-            playSound('click');
             const modal = document.getElementById('project-modal');
             const panel = document.getElementById('project-panel');
             modal.classList.add('opacity-0');
@@ -1021,7 +995,6 @@
                 btn.textContent = "Transmitting...";
                 const submitBtn = contactForm.querySelector('button');
                 submitBtn.disabled = true;
-                playSound('click');
 
                 const name = document.getElementById('contact-name').value;
                 const email = document.getElementById('contact-email').value;
@@ -1087,12 +1060,10 @@
                     </div>
                 </article>`;
             }).join('');
-            addHoverListeners();
         }
 
         window.deletePost = async (id) => {
             if(confirm("Permanently delete this entry?")) {
-                playSound('click');
                 try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blog-posts', id)); } 
                 catch(e) { alert("Failed to delete."); }
             }
@@ -1108,7 +1079,6 @@
 
         openBtn.addEventListener('click', () => {
             editorModal.classList.remove('hidden');
-            playSound('click');
             requestAnimationFrame(() => {
                 editorModal.classList.remove('opacity-0');
                 editorPanel.classList.remove('scale-95');
@@ -1121,7 +1091,7 @@
             editorPanel.classList.add('scale-95');
             setTimeout(() => { editorModal.classList.add('hidden'); }, 300);
         };
-        closeBtn.addEventListener('click', () => { closeEditor(); playSound('click'); });
+        closeBtn.addEventListener('click', () => { closeEditor(); });
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1131,7 +1101,6 @@
             const originalText = btnText.textContent;
             btnText.textContent = "Publishing...";
             submitBtn.disabled = true;
-            playSound('click');
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'blog-posts'), {
                     title, content, authorId: currentUser.uid, createdAt: serverTimestamp(), date: new Date().toISOString()
