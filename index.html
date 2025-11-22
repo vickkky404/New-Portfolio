@@ -191,20 +191,6 @@
             display: inline-block;
         }
 
-        /* Preloader */
-        #preloader {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Newsreader', serif;
-            font-style: italic;
-            color: white;
-        }
-
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
@@ -307,19 +293,6 @@
             </filter>
         </defs>
     </svg>
-
-    <!-- Preloader -->
-    <div id="preloader">
-        <div class="text-center px-6">
-            <div class="text-3xl md:text-6xl mb-4 overflow-hidden">
-                <span class="inline-block transform translate-y-full" id="loader-text">SYSTEM_BOOT_SEQUENCE</span>
-            </div>
-            <div class="w-full max-w-xs md:w-48 h-[1px] bg-white/20 mx-auto overflow-hidden">
-                <div class="h-full bg-white w-full transform -translate-x-full" id="loader-bar"></div>
-            </div>
-            <div class="mt-2 font-mono text-xs text-gray-500" id="loader-percent">00%</div>
-        </div>
-    </div>
 
     <!-- Custom Cursor Elements (Desktop Only via CSS) -->
     <div class="cursor-dot"></div>
@@ -767,51 +740,22 @@
 
         initAuth();
 
-        // --- Feature 1: Boot Sequence ---
-        const runBootSequence = () => {
+        // --- Initialization (Replaced Boot Sequence) ---
+        const init = () => {
             if(!window.anime) {
-                setTimeout(runBootSequence, 100);
+                setTimeout(init, 100);
                 return;
             }
-
-            const tl = anime.timeline({
-                easing: 'easeOutExpo',
-            });
-
-            tl.add({
-                targets: '#loader-text',
-                translateY: ['100%', '0%'],
-                duration: 1000,
-                delay: 200
-            })
-            .add({
-                targets: '#loader-bar',
-                translateX: ['-100%', '0%'],
-                duration: 1500,
-                easing: 'easeInOutQuart'
-            }, '-=500')
-            .add({
-                targets: '#loader-percent',
-                innerHTML: [0, 100],
-                round: 1,
-                easing: 'linear',
-                duration: 1500
-            }, '-=1500')
-            .add({
-                targets: '#preloader',
-                translateY: '-100%',
-                duration: 800,
-                easing: 'easeInOutExpo',
-                delay: 200,
-                complete: () => {
-                    animateSection('work');
-                    document.addEventListener('click', () => {
-                        if (audioCtx.state === 'suspended') audioCtx.resume();
-                    }, { once: true });
-                }
-            });
+            
+            // Immediate start
+            animateSection('work');
+            
+            // Init Audio context on first interaction
+            document.addEventListener('click', () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
         };
-        runBootSequence();
+        init();
 
 
         // --- Feature 2: Background Orbs (Mobile Scroll Parallax) ---
